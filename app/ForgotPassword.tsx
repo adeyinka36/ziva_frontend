@@ -12,16 +12,18 @@ type FormData = {
     confirmPassword: string;
 };
 
-export default function RegisterScreen() {
-    const { control, handleSubmit, formState: { errors } } = useForm<FormData>();
+export default function ForgotPasswordScreen() {
+    const { control, handleSubmit, watch, formState: { errors } } = useForm<FormData>();
 
-    const onRegister = (data: FormData) => {
+    const password = watch("password");
+
+    const onForgotPassword = (data: FormData) => {
         if (data.password !== data.confirmPassword) {
             alert("Passwords do not match");
             return;
         }
-        // Handle registration logic here
-        console.log("Registration data", data);
+        // Handle forgot password logic here
+        console.log("Forgot password data", data);
     };
 
     return (
@@ -37,6 +39,8 @@ export default function RegisterScreen() {
                     source={require("../assets/images/ziva_logo.webp")}
                 />
             </View>
+
+            <Text className="text-black font-bold text-xl mb-6">Reset Your Password</Text>
 
             {/* Username Input */}
             <View className="w-full mb-3">
@@ -96,7 +100,7 @@ export default function RegisterScreen() {
                 />
             </View>
 
-            {/* Password Input */}
+            {/* New Password Input */}
             <View className="w-full mb-3">
                 <Controller
                     control={control}
@@ -104,7 +108,6 @@ export default function RegisterScreen() {
                     rules={{
                         required: "Password is required",
                         pattern: {
-                            // Regex: Must contain at least one number, one special character, and one letter.
                             value: /^(?=.*[0-9])(?=.*[!@#$%^&*])(?=.*[a-zA-Z]).+$/,
                             message: "Password must be alphanumeric with at least one number and one special character",
                         },
@@ -115,7 +118,7 @@ export default function RegisterScreen() {
                                 <FontAwesome name="lock" size={30} color="black" className="mr-3" />
                                 <TextInput
                                     className="flex-1 text-black font-bold"
-                                    placeholder="Password"
+                                    placeholder="New Password"
                                     placeholderTextColor="#000"
                                     secureTextEntry
                                     value={value}
@@ -134,7 +137,11 @@ export default function RegisterScreen() {
                 <Controller
                     control={control}
                     name="confirmPassword"
-                    rules={{ required: "Please confirm your password" }}
+                    rules={{
+                        required: "Please confirm your password",
+                        validate: value =>
+                            value === password || "Passwords do not match",
+                    }}
                     render={({ field: { onChange, value }, fieldState: { error } }) => (
                         <>
                             <View className="flex-row items-center w-full bg-primary rounded-lg border text-base p-4">
@@ -155,14 +162,14 @@ export default function RegisterScreen() {
                 />
             </View>
 
-            {/* Register Button */}
-            <TouchableOpacity onPress={handleSubmit(onRegister)} className="bg-black p-4 rounded-lg mt-6 min-w-full">
-                <Text className="text-primary text-center font-bold text-xl">REGISTER</Text>
+            {/* Reset Password Button */}
+            <TouchableOpacity onPress={handleSubmit(onForgotPassword)} className="bg-black p-4 rounded-lg mt-6 min-w-full">
+                <Text className="text-primary text-center font-bold text-xl">RESET PASSWORD</Text>
             </TouchableOpacity>
 
-            {/* Login Link */}
+            {/* Back to Login Link */}
             <Text className="mt-4 text-black">
-                Already have an account?{" "}
+                Remember your password?{" "}
                 <Link href="/login" className="text-dark font-bold">
                     Login
                 </Link>

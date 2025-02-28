@@ -17,14 +17,14 @@ const MainLayout = () => {
         if(isAuthenticated && !inApp) {
             router.replace("/");
         } else if(!isAuthenticated){
-            router.replace("/login")
+            router.replace("/login");
             // router.replace("/Home")
         }
 
     }, [isAuthenticated])
 
   return (
-        <SafeAreaView>
+        <SafeAreaView className="bg-primary flex-1 justify-center items-center">
           <Slot />
         </SafeAreaView>
   );
