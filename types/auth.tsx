@@ -9,9 +9,10 @@ export interface AuthContextType {
 
     login: (email: string, password: string) => Promise<void>;
     setUser: (updatedUser: any) => void;
-    register: (email: string, password: string, confirmPassword: string, username: string) => Promise<void>;
+    register: (firstName: string, lastName: string, email: string, password: string, confirmPassword: string, username: string) => Promise<void>;
     logout: () => Promise<void>;
-
+    requestPasswordResetToken: (firstName: string, lastName: string, email: string) => Promise<any>;
+    sendPasswordResetToken: (token: string, password: string, confirmPassword: string) => Promise<any>;
 }
 
 export const defaultAuthContext: AuthContextType = {
@@ -37,5 +38,11 @@ export const defaultAuthContext: AuthContextType = {
     },
     logout: async (): Promise<void> => {
 
+    },
+    requestPasswordResetToken: async (firstName: string, lastName: string, email: string): Promise<any> => {
+        console.log("Default requestPasswordResetToken function called with:", firstName, lastName, email);
+    },
+    sendPasswordResetToken: async (token: string, password: string, confirmPassword: string): Promise<any> => {
+        console.log("Default sendPasswordResetToken function called with:");
     },
 };

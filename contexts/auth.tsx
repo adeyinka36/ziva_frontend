@@ -1,5 +1,8 @@
-import { createContext, useEffect, useState, useContext } from "react";
+import { createContext, useEffect, useState, useContext, ReactNode } from "react";
 import { AuthContextType, defaultAuthContext } from "@/types/auth";
+import axios from "axios";
+import {BASE_URL} from "@/utils/getUrls";
+import {removeToken, storeToken, getToken} from "@/utils/auth";
 
 
 const AuthContext = createContext<AuthContextType>(defaultAuthContext);
@@ -7,7 +10,30 @@ interface AuthProviderProps {
     children: ReactNode;
 }
 
+const setDefaultAuthHeaders = (token: string) => {
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+}
+
 export const AuthContextProvider = ({children}: AuthProviderProps) => {
+
+    const [user, setUser] = useState(null);
+    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+    const [authToken, setAuthToken] = useState<string|null>(null);
+
+
+    const removeTokenAndUser = async () => {
+        setAuthToken("");
+        setIsAuthenticated(false);
+        await removeToken();
+    }
+    const storeTokenAndSetUser = async (token: string, user: any) => {
+        await storeToken(token);
+        setIsAuthenticated(true);
+        setAuthToken(token);
+        setUser(user);
+        setDefaultAuthHeaders(token);
+    }
+
 
     useEffect( ()=> {
         const loadToken = async () => {
@@ -17,24 +43,81 @@ export const AuthContextProvider = ({children}: AuthProviderProps) => {
                 setAuthToken(token)
             }
         }
-        loadToken();
+        loadToken().then();
     }, [])
 
     const AuthContextValues:AuthContextType = {
-        user: null,
-        isAuthenticated: false,
-        authToken: null,
+        user,
+        isAuthenticated,
+        authToken,
         setUser: (updatedUser: any) => {
-            console.log("Setting user:", updatedUser);
+            setUser(updatedUser);
         },
         login: async (email: string, password: string) => {
-            console.log("Logging in with:", email, password);
+            try{
+                const response = await axios.post(`${BASE_URL}/players/login`,{email, password});
+                await storeTokenAndSetUser(response.data.token, response.data.data);
+            }catch (error: any){
+                await removeTokenAndUser();
+            }
         },
-        register: async (email: string, password: string, confirmPassword: string, username: string) => {
-            console.log("Registering with:", email, password, confirmPassword, username);
+        register: async (firstName, lastName, email, password, confirmPassword, username    ) => {
+            try{
+                const response = await axios.post(`${BASE_URL}/players/register`,{
+                    email,
+                    password,
+                    confirm_password: confirmPassword,
+                    username,
+                    first_name: firstName,
+                    last_name: lastName
+                });
+
+                await storeTokenAndSetUser(response.data.token, response.data.data);
+            }catch (error){
+                await removeTokenAndUser();
+            }
         },
         logout: async () => {
-            console.log("Logging out");
+            await removeTokenAndUser();
+        },
+
+        requestPasswordResetToken: async (firstName: string, lastName: string, email: string) => {
+            try{
+                 await axios.post(`${BASE_URL}/players/request-password-reset-token`, {
+                    first_name: firstName,
+                    last_name: lastName,
+                    email,
+                });
+                return {
+                    error: null,
+                    status: "success"
+                }
+            }catch (error){
+                if (axios.isAxiosError(error) && error.response) {
+                    return { error: error.response.data.error };
+                } else {
+                    return { status: "failure", error: "An unexpected error occurred" };
+                }
+            }
+        },
+        sendPasswordResetToken: async (token: string, password: string, confirmPassword: string) => {
+            try{
+                await axios.post(`${BASE_URL}/players/reset-password`, {
+                    token,
+                    password,
+                    confirm_password: confirmPassword,
+                });
+                return {
+                    success: true,
+                    error: null
+                }
+            }catch (error: any){
+                if (axios.isAxiosError(error) && error.response) {
+                    return { error: error.response.data.error };
+                } else {
+                    return { success: false, error: "An unexpected error occurred" };
+                }
+            }
         }
     }
 
@@ -45,12 +128,8 @@ export const AuthContextProvider = ({children}: AuthProviderProps) => {
     )
 }
 
-
-
 export const useAuth = () => {
     const value  = useContext(AuthContext);
-
-
     if(!value) {
         throw new Error('useAuth must be used inside an AuthContextProvider');
     }
