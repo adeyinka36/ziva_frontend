@@ -30,8 +30,11 @@ export default function LoginScreen() {
             return;
         }
         try{
-            await login(data.email, data.password);
+           const res =  await login(data.email, data.password);
             setLoading(false);
+            if(!res) {
+                setApiError("Invalid credentials");
+            }
         }catch (error: any){
             setLoading(false);
             setApiError("An error occurred");

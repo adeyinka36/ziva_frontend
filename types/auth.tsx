@@ -7,9 +7,9 @@ export interface AuthContextType {
     isAuthenticated: boolean;
     authToken: string | null;
 
-    login: (email: string, password: string) => Promise<void>;
+    login: (email: string, password: string) => Promise<boolean>;
     setUser: (updatedUser: any) => void;
-    register: (firstName: string, lastName: string, email: string, password: string, confirmPassword: string, username: string) => Promise<void>;
+    register: (firstName: string, lastName: string, email: string, password: string, confirmPassword: string, username: string) => Promise<boolean>;
     logout: () => Promise<void>;
     requestPasswordResetToken: (firstName: string, lastName: string, email: string) => Promise<any>;
     sendPasswordResetToken: (token: string, password: string, confirmPassword: string) => Promise<any>;
@@ -23,18 +23,16 @@ export const defaultAuthContext: AuthContextType = {
     setUser:  (updatedUser: any) : void =>{
 
     },
-    login: async (email: string, password: string): Promise<void> => {
-        console.log("Default login function called with:", email, password);
-        // No operation by default
+    login: async (email: string, password: string): Promise<boolean> => {
+        return false;
     },
     register: async (
         email: string,
         password: string,
         confirmPassword: string,
         username: string
-    ): Promise<void> => {
-        console.log("Default register function called with:", email, password, confirmPassword, username);
-        // No operation by default
+    ): Promise<boolean> => {
+       return false;
     },
     logout: async (): Promise<void> => {
 

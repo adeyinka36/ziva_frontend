@@ -1,39 +1,35 @@
 import "../global.css";
-import {Slot} from "expo-router";
-import {SafeAreaView} from "react-native";
-import {useEffect} from "react";
-import {useAuth} from "@/contexts/auth";
-import {useRouter, useSegments} from "expo-router";
-import {AuthContextProvider} from "@/contexts/auth";
-
+import { Slot } from "expo-router";
+import { useEffect } from "react";
+import { useAuth } from "@/contexts/auth";
+import { useRouter, useSegments } from "expo-router";
+import { AuthContextProvider } from "@/contexts/auth";
 
 const MainLayout = () => {
-    const {isAuthenticated} = useAuth();
+    const { isAuthenticated } = useAuth();
     const segments = useSegments();
     const router = useRouter();
+
     useEffect(() => {
-        if(typeof isAuthenticated == undefined) return;
-        const inApp = segments[0] =='(app)';
-        if(isAuthenticated && !inApp) {
-            router.replace("/");
-        } else if(!isAuthenticated){
+        // Check directly if isAuthenticated is undefined
+        if (isAuthenticated === undefined) return;
+        const inApp = segments[0] === "(app)";
+        if (isAuthenticated && !inApp) {
+            router.replace("/home");
+        } else if (!isAuthenticated) {
             router.replace("/login");
-            // router.replace("/Home")
         }
+    }, [isAuthenticated, segments, router]);
 
-    }, [isAuthenticated])
-
-  return (
-        <SafeAreaView className="bg-primary flex-1 justify-center items-center">
-          <Slot />
-        </SafeAreaView>
-  );
-}
+    return (
+            <Slot />
+    );
+};
 
 export default function RootLayout() {
     return (
-            <AuthContextProvider>
-                <MainLayout/>
-            </AuthContextProvider>
-    )
+        <AuthContextProvider>
+            <MainLayout />
+        </AuthContextProvider>
+    );
 }

@@ -53,15 +53,17 @@ export const AuthContextProvider = ({children}: AuthProviderProps) => {
         setUser: (updatedUser: any) => {
             setUser(updatedUser);
         },
-        login: async (email: string, password: string) => {
+        login: async (email: string, password: string): Promise<boolean> => {
             try{
                 const response = await axios.post(`${BASE_URL}/players/login`,{email, password});
                 await storeTokenAndSetUser(response.data.token, response.data.data);
+                return true;
             }catch (error: any){
                 await removeTokenAndUser();
+                return false;
             }
         },
-        register: async (firstName, lastName, email, password, confirmPassword, username    ) => {
+        register: async (firstName, lastName, email, password, confirmPassword, username    ): Promise<boolean> => {
             try{
                 const response = await axios.post(`${BASE_URL}/players/register`,{
                     email,
@@ -73,8 +75,10 @@ export const AuthContextProvider = ({children}: AuthProviderProps) => {
                 });
 
                 await storeTokenAndSetUser(response.data.token, response.data.data);
+                return true;
             }catch (error){
                 await removeTokenAndUser();
+                return false;
             }
         },
         logout: async () => {

@@ -44,7 +44,7 @@ export default function RegisterScreen() {
 
         // Call your register function, which should return an object with an error property if something went wrong.
         try{
-            await register(
+            const res = await register(
                 data.firstName,
                 data.lastName,
                 data.email,
@@ -53,6 +53,9 @@ export default function RegisterScreen() {
                 data.username
             );
             setLoading(false);
+            if(!res) {
+                setApiError("Invalid credentials");
+            }
         }catch (error: any) {
             setApiError("An error occurred");
             setLoading(false);
