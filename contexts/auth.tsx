@@ -3,6 +3,7 @@ import { AuthContextType, defaultAuthContext } from "@/types/auth";
 import axios from "axios";
 import {BASE_URL} from "@/utils/getUrls";
 import {removeToken, storeToken, getToken} from "@/utils/auth";
+import { userType } from "@/types/userType";
 
 
 const AuthContext = createContext<AuthContextType>(defaultAuthContext);
@@ -16,7 +17,14 @@ const setDefaultAuthHeaders = (token: string) => {
 
 export const AuthContextProvider = ({children}: AuthProviderProps) => {
 
-    const [user, setUser] = useState(null);
+    const [user, setUser] = useState<userType>({
+        first_name: "",
+        last_name: "",
+        email: "",
+        zivas: 0,
+        id: "",
+        username: ""
+    });
     const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
     const [authToken, setAuthToken] = useState<string|null>(null);
 

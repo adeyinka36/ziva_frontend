@@ -18,7 +18,8 @@ const MainLayout = () => {
     const currentRoute = "/" + segments.join("/");
 
     // Define public routes that should only be accessible when NOT authenticated
-    const publicRoutes = ["/login", "/signup"];
+    const publicRoutes = ["/login", "/register"];
+    
 
     // If not authenticated and trying to access a protected route, redirect to login
     if (!isAuthenticated && !publicRoutes.includes(currentRoute)) {

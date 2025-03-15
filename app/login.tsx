@@ -47,7 +47,7 @@ export default function LoginScreen() {
             className="flex-1 bg-primary justify-center items-center p-6"
         >
             {/* Illustration */}
-            <View className="items-center mb-8">
+            <View className="items-center mb-8 ">
                 <Image
                     style={{ height: hp(25) }}
                     resizeMode="contain"

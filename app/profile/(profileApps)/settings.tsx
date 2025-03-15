@@ -22,9 +22,6 @@ const SettingsPage: React.FC = () => {
   return (
     <SafeAreaView className="flex-1 bg-primary p-4">
       {/* Page Header */}
-      <Text className="text-secondary text-3xl font-bold mb-6 text-center">
-        Settings
-      </Text>
       {/* Settings Card */}
       <View className="bg-primary rounded-xl p-6 shadow-lg space-y-6 flex-1 justify-start border-primary shadow-primary">
         {/* Notifications Option */}

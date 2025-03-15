@@ -3,9 +3,11 @@ import { View, Text, TouchableOpacity, SafeAreaView } from "react-native";
 import { useRouter } from "expo-router";
 import { BellIcon } from "react-native-heroicons/outline";
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from "react-native-responsive-screen";
+import { useAuth } from "@/contexts/auth";
 
 const HomeSectionHeader: React.FC = () => {
   const router = useRouter();
+  const {user} = useAuth();
   // Replace this with your actual notification state logic.
   const hasNewNotifications = true;
 
@@ -35,14 +37,14 @@ const HomeSectionHeader: React.FC = () => {
             style={{ fontSize: hp("2.5%"), marginRight: wp(".5%") }}
             className="text-black font-semibold"
           >
-            YinkaX86
+            {user.username}
           </Text>
           <View
             style={{ width: wp("12%"), height: wp("12%") }}
             className="bg-gray-300 rounded-full border-secondary justify-center items-center border-4"
           >
             <Text style={{ fontSize: hp("4%") }} className="text-secondary font-bold">
-              Y
+            {user.username[0]}
             </Text>
           </View>
         </TouchableOpacity>

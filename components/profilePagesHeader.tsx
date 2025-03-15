@@ -4,9 +4,14 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from "react-native-responsive-screen";
 import CircularProgressBar from "./CircularProgressBar";
+import { useAuth } from "@/contexts/auth";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const ProfilePageHeader = () =>{
    const router = useRouter();
+   const {user} = useAuth();
+   const percentage = (user.zivas / 1000) * 100
+   
 
     return(
         <View className="flex-row justify-between p-2">
@@ -18,7 +23,7 @@ const ProfilePageHeader = () =>{
             <TouchableOpacity
 
             >
-                <CircularProgressBar percentage={75} points={300} size={20}/>
+                <CircularProgressBar percentage={percentage} points={user.zivas} size={20}/>
 
             </TouchableOpacity>
        </View>

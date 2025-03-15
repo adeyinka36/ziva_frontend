@@ -1,9 +1,10 @@
 import { SetStateAction } from "react";
 import { Dispatch } from "react";
+import { userType } from "./userType";
 
 // AuthContextType.ts
 export interface AuthContextType {
-    user: any | null;
+    user: userType;
     isAuthenticated: boolean;
     authToken: string | null;
 
@@ -16,7 +17,14 @@ export interface AuthContextType {
 }
 
 export const defaultAuthContext: AuthContextType = {
-    user: null,
+    user: {
+        first_name: "",
+        last_name: "",
+        email: "",
+        zivas: 0,
+        id: "",
+        username: ""
+    },
     isAuthenticated: false,
     authToken: null,
 

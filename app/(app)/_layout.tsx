@@ -32,9 +32,9 @@ export default function AppLayout() {
                     }}
                 />
                 <Tabs.Screen
-                    name="createdGames"
+                    name="games"
                     options={{
-                        tabBarLabel: "Created Games",
+                        tabBarLabel: "Games",
                         tabBarIcon: ({ color, size }) => (
                             <CubeTransparentIcon color={color} size={size} />
                         ),
@@ -42,9 +42,9 @@ export default function AppLayout() {
                     }}
                 />
                 <Tabs.Screen
-                    name="customQuizzes"
+                    name="topics"
                     options={{
-                        tabBarLabel: "Custom Quizzes",
+                        tabBarLabel: "Tooics", // pages will include custom and created topics options
                         tabBarIcon: ({ color, size }) => (
                             <ClipboardDocumentListIcon color={color} size={size} />
                         ),
