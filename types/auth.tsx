@@ -23,7 +23,9 @@ export const defaultAuthContext: AuthContextType = {
         email: "",
         zivas: 0,
         id: "",
-        username: ""
+        username: "",
+        avatar: "",
+        is_member: false
     },
     isAuthenticated: false,
     authToken: null,

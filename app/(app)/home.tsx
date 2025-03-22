@@ -1,10 +1,12 @@
-import {View, Text, StatusBar} from "react-native";
-
+import { View, Text } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Home() {
     return (
-        <View className="bg-primary flex-1 justify-center items-center mb-0 pb-0">
-            <Text> Welcome to the home page</Text>
-        </View>
+        <SafeAreaView style={{ flex: 1, backgroundColor: "#f0f0f0" }}>
+            <View className="flex-1 justify-center items-center">
+                <Text className="text-xl font-semibold">Home</Text>
+            </View>
+        </SafeAreaView>
     );
 }

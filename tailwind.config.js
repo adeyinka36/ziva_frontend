@@ -10,6 +10,10 @@ module.exports = {
         dark: '#007663',
         white: '#ffffff',
         black: '#000000',
+        yellow: '#FFFF00',
+        lightYellow: '#ffde8f',
+        darkYellow: '#FFC107',
+        lightYellowOpacity: '#FFFF0090'
     },
     extend: {},
   },

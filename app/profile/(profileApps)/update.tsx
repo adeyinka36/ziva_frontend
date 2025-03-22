@@ -15,6 +15,8 @@ import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { useAuth } from "@/contexts/auth";
 import { updateUserDetails } from "@/functions/updateUser";
 import { userType } from "@/types/userType";
+import { handleImageSelectionAndUpload } from "@/components/imageUploader";
+import { Image } from "react-native";
 
 type FormData = {
   firstName?: string;
@@ -147,6 +149,10 @@ export default function ProfileUpdate() {
         {successMessage && (
           <Text className="text-green-500 text-xl mb-2">{successMessage}</Text>
         )}
+
+       <TouchableOpacity onPress={() => handleImageSelectionAndUpload(user.id)}>
+        <Image source={{ uri: user.avatar }} className="w-10 h-10 rounded-full" />
+       </TouchableOpacity>
 
         {/* Current Password (Required) */}
         <View className="w-full mb-3">

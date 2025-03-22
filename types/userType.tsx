@@ -4,5 +4,7 @@ export interface userType{
     email: string,
     username: string,
     zivas: number,
-    id: string
+    id: string,
+    is_member: boolean,
+    avatar: string,
 }

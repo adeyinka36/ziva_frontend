@@ -41,6 +41,20 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffc75f"
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Select and upload images.",
+          "camerapermission": "Allow $(PRODUCT_NAME) to access your camera."
+        }
+      ],
+      [
+        "expo-secure-store",
+        {
+          "configureAndroidBackup": true,
+          "faceIDPermission": "Allow $(PRODUCT_NAME) to access your Face ID biometric data."
+        }
       ]
     ],
     "experiments": {
