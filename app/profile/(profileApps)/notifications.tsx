@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
   SafeAreaView,
   FlatList,
@@ -11,17 +11,20 @@ import { Ionicons } from '@expo/vector-icons';
 import { getNotifications } from '@/functions/getNotification';
 import { useAuth } from '@/contexts/auth';
 import { Notification, NotificationResponse } from '@/functions/getNotification';
+import { HeaderContext } from '@/contexts/header';
 
 const NotificationsPage: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [loadingMore, setLoadingMore] = useState<boolean>(false);
   const [nextPage, setNextPage] = useState<string | null>(null);
+  const { setTitle } = useContext(HeaderContext);
 
   const { user } = useAuth();
 
 
   useEffect(() => {
+    setTitle("Notifications");
     const fetchNotifications = async () => {
       setLoading(true);
       try {

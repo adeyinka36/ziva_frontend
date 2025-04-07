@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   View,
   Text,
@@ -7,76 +7,76 @@ import {
   FlatList,
   SafeAreaView,
   KeyboardAvoidingView,
+  Image,
 } from "react-native";
 import {
   XMarkIcon,
   MagnifyingGlassIcon,
-  TrashIcon,
 } from "react-native-heroicons/solid";
 import {
-  UserGroupIcon,
   ExclamationCircleIcon,
 } from "react-native-heroicons/outline";
-import { getPlayers, PlayerType } from "@/functions/getPlayers";
-import { useDebounce } from "@/hooks/useDebounce"; // Remove if unused
+import { useDebounce } from "@/hooks/useDebounce";
 import { useAuth } from "@/contexts/auth";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import { GameContext } from "@/contexts/game";
-import { useContext, useRef } from "react";
 import { useRouter } from "expo-router";
+import Toast from "react-native-toast-message";
+import { HeaderContext } from "@/contexts/header";
+import { getFriendships } from "@/functions/getFriends";
+import { PlayerType } from "@/functions/getPlayers";
 import { GameType } from "@/types/game";
-
 
 const MAX_PLAYERS = 6;
 
 export default function SelectPlayers() {
+  const { setTitle } = useContext(HeaderContext);
   const [searchQuery, setSearchQuery] = useState("");
   const { user } = useAuth();
-  const {currentGame, setCurrentGame} = useContext(GameContext);
+  const { currentGame, setCurrentGame } = useContext(GameContext);
 
-  
-  const [selectedPlayers, setSelectedPlayers] = useState<PlayerType[]>(currentGame?.players ? currentGame.players :[]);
+  // Initialize selected players from currentGame or empty
+  const [selectedPlayers, setSelectedPlayers] = useState<PlayerType[]>(
+    currentGame?.players ?? []
+  );
   const [availablePlayers, setAvailablePlayers] = useState<PlayerType[]>([]);
-
-  
-
-  const [flashCount, setFlashCount] = useState(0);
-
   const debouncedQuery = useDebounce(searchQuery, 300);
-
   const router = useRouter();
+
+  // On mount, ensure the user is always in the selected list
+  useEffect(() => {
+    setTitle("SELECT PLAYERS");
+    const userAlreadySelected = selectedPlayers.some((p) => p.id === user.id);
+    if (!userAlreadySelected) {
+      setSelectedPlayers((prev) => [...prev, user]);
+      if (currentGame?.players) {
+        setCurrentGame({
+          ...currentGame,
+          players: [...currentGame.players, user],
+        });
+      } else {
+        setCurrentGame({ ...currentGame, players: [user] });
+      }
+    }
+  }, []);
+
+  // Fetch players (friends who are "accepted") using debouncedQuery
   useEffect(() => {
     fetchPlayers(debouncedQuery);
   }, [debouncedQuery]);
 
-  // useEffect(() => {
-
-  //   if(typeof currentGame?.players !== 'undefined'){
-  //     setSelectedPlayers(currentGame.players);
-  //     setAvailablePlayers(prev => prev.filter((p) => !(selectedPlayers.includes(p))))
-  //     console.log(selectedPlayers.map(p => p.username), availablePlayers.map(p => p.username))
-  //   }
-  // },[currentGame])
- 
-
-  // Helper to fetch players
+  // Helper to retrieve players & remove current user + already selected
   const fetchPlayers = async (q: string) => {
     try {
-      const response = await getPlayers(q);
-      if (response && response.data) {
-        let filtered = response.data.filter(
-          (p) => !selectedPlayers.find((sel) => sel.id === p.id)
+      const response = await getFriendships(user.id, "accepted", q);
+      if (response?.data) {
+        // Filter out selected players + self
+        const filtered = response.data.filter(
+          (p) => !selectedPlayers.find((sel) => sel.id === p.id) && p.id !== user.id
         );
-
-        const isUserSelected = selectedPlayers.some((sel) => sel.id === user.id);
-        if (!isUserSelected) {
-          filtered = filtered.filter((p) => p.id !== user.id);
-          filtered.unshift(user);
-        }
-
         setAvailablePlayers(filtered);
       } else {
         setAvailablePlayers([]);
@@ -87,149 +87,159 @@ export default function SelectPlayers() {
     }
   };
 
-  // Called when user taps an available player
+  // Add a player (max 6)
   const handleSelectPlayer = (player: PlayerType) => {
-    // If we've hit the max, flash the header and do not add
     if (selectedPlayers.length >= MAX_PLAYERS) {
-      flashHeader();
+      Toast.show({
+        type: "info",
+        text1: "Maximum Players Reached",
+        text2: `You can only have up to ${MAX_PLAYERS} players in a game`,
+      });
       return;
     }
-
     setSelectedPlayers((prev) => [...prev, player]);
-  
-    if(typeof currentGame?.players !== 'undefined'){
-      setCurrentGame({...currentGame, players: [...currentGame.players, player]})
-    }else{
-      setCurrentGame({...currentGame, players: [player]})
-    }
-    setAvailablePlayers(prev => prev.filter((p) => !selectedPlayers.includes(p)))
 
-  };
-
-  // Move player from "selected" to "available"
-  const handleUnselectPlayer = (player: PlayerType) => {
-    setSelectedPlayers((prev) => prev.filter((p) => p.id !== player.id));
-    if(typeof currentGame?.players !== 'undefined'){
-      setCurrentGame({...currentGame, players: currentGame.players.filter((p) => p.id !== player.id)})
-
-    }else{
-      setCurrentGame({...currentGame, players: [player]})
-    }
-    setAvailablePlayers(prev => [player, ...prev])
-  };
-
-  // Flash the header text 3 times
-  const flashHeader = () => {
-    // If we're already flashing, ignore
-    if (flashCount > 0) return;
-
-    let flashes = 0;
-    setFlashCount(1); // Start flashing
-
-    const interval = setInterval(() => {
-      flashes++;
-      setFlashCount((prev) => prev + 1);
-
-      if (flashes === 3) {
-        clearInterval(interval);
-        setFlashCount(0); // Stop flashing
-      }
-    }, 300);
-  };
-
-  const nextPage = async () => {
-    if (!selectedPlayers.length) {
-        return
-    }
-    if (!currentGame) {
-        return
-    }
-    const updatedGame: GameType = { 
+    if (currentGame?.players) {
+      setCurrentGame({
         ...currentGame,
-        players: selectedPlayers
+        players: [...currentGame.players, player],
+      });
+    } else {
+      setCurrentGame({ ...currentGame, players: [player] });
     }
+    setAvailablePlayers((prev) => prev.filter((p) => p.id !== player.id));
+  };
+
+  // Remove a player (never remove self)
+  const handleUnselectPlayer = (player: PlayerType) => {
+    if (player.id === user.id) return;
+    setSelectedPlayers((prev) => prev.filter((p) => p.id !== player.id));
+
+    if (currentGame?.players) {
+      setCurrentGame({
+        ...currentGame,
+        players: currentGame.players.filter((p) => p.id !== player.id),
+      });
+    } else {
+      setCurrentGame({ ...currentGame, players: [] });
+    }
+    setAvailablePlayers((prev) => [player, ...prev]);
+  };
+
+  // Next screen
+  const nextPage = () => {
+    if (!selectedPlayers.length) return;
+    if (!currentGame) return;
+
+    const updatedGame: GameType = { ...currentGame, players: selectedPlayers };
     setCurrentGame(updatedGame);
-  
+
     router.push("/createGame");
   };
 
-  // Header: changes text based on whether we've reached the limit
-  const isMaxPlayers = selectedPlayers.length === MAX_PLAYERS;
-  const headerText = isMaxPlayers ? "Maximum Players" : `Up to ${MAX_PLAYERS} Players`;
-
-  // We can also flash the text color. If flashCount is odd, use a different color
-  const textColorClass = flashCount % 2 === 1 ? "text-red-600" : "text-secondary";
-
-  // Render each "selected" player
-  const renderSelectedPlayer = ({ item }: { item: PlayerType }) => (
-    <View className="w-1/3 p-2">
-      <View
-        className="bg-darkYellow rounded-md p-3 items-center justify-center"
-        style={{ minHeight: hp(12) }}
-      >
-        <Text className="text-secondary font-bold text-md mb-1">
-          {item.username === user.username ? "You" : item.username}
-        </Text>
-        {/* Remove button */}
-        <TouchableOpacity
-          onPress={() => handleUnselectPlayer(item)}
-          className="flex-row items-center bg-red-600 px-2 py-1 rounded-md"
+  // Render a selected player
+  const renderSelectedPlayer = ({ item }: { item: PlayerType }) => {
+    const isUser = item.id === user.id;
+    return (
+      <View className="p-2 items-center">
+        {/* Avatar circle */}
+        <View
+          style={{
+            width: wp(20),
+            height: wp(20),
+            borderRadius: wp(20) / 2,
+            overflow: "hidden",
+          }}
         >
-          <TrashIcon size={wp(4)} color="#F00" />
-          <Text className="text-danger text-xs ml-1">Remove</Text>
-        </TouchableOpacity>
+          <Image
+            source={{ uri: item.avatar }}
+            style={{ width: "100%", height: "100%" }}
+            resizeMode="cover"
+          />
+        </View>
+
+        {/* Name + remove button */}
+        <View className="flex-column w-full mt-1 items-center justify-center">
+          <View className="flex-row bg-gray-300 rounded-md px-1 items-center">
+            {!isUser && (
+              <TouchableOpacity onPress={() => handleUnselectPlayer(item)}>
+                <XMarkIcon size={wp(5)} color="red" style={{ marginRight: 4 }} />
+              </TouchableOpacity>
+            )}
+            <Text className="text-black font-bold">{item.username}</Text>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  // Render an available player
+  const renderAvailablePlayer = ({ item }: { item: PlayerType }) => (
+    <View className="p-2 items-center">
+      <TouchableOpacity
+        style={{
+          width: wp(20),
+          height: wp(20),
+          borderRadius: wp(20) / 2,
+          overflow: "hidden",
+        }}
+        onPress={() => handleSelectPlayer(item)}
+        activeOpacity={0.7}
+      >
+        <Image
+          source={{ uri: item.avatar }}
+          style={{ width: "100%", height: "100%" }}
+          resizeMode="cover"
+        />
+      </TouchableOpacity>
+
+      <View className="bg-gray-300 mt-1 rounded-md items-center px-1">
+        <Text className="text-black font-bold">{item.username}</Text>
       </View>
     </View>
-  );
-
-  // Render each "available" player (circular, yellow background)
-  const renderAvailablePlayer = ({ item }: { item: PlayerType }) => (
-    <TouchableOpacity
-      className="w-1/3 p-2"
-      onPress={() => handleSelectPlayer(item)}
-    >
-      <View
-        className="bg-yellow-400 rounded-2xl items-center justify-center p-4 bg-darkYellow"
-        style={{ minHeight: hp(12) }}
-      >
-        <Text className="text-black font-semibold text-md text-center">
-        {item.username === user.username ? "You" : item.username}
-        </Text>
-      </View>
-    </TouchableOpacity>
   );
 
   return (
     <SafeAreaView className="flex-1 bg-primary">
       <KeyboardAvoidingView behavior="padding" className="flex-1 p-4">
-        {/* Title + Icon */}
-        <View className="flex-row items-center mb-4 justify-center">
-          <UserGroupIcon size={wp(10)} color="#4e2b00" className="mr-2" />
-          <Text className={`${textColorClass} text-2xl font-bold`}>
-            {headerText}
-          </Text>
-        </View>
 
-        {/* Selected players in a 3-column grid with responsive height */}
-        <View className="mb-2" style={{ maxHeight: hp(25) }}>
+        {/* Selected players */}
+        <View style={{ flex: 0.4 }}>
           {selectedPlayers.length > 0 ? (
             <FlatList
               data={selectedPlayers}
               keyExtractor={(item) => item.id}
               renderItem={renderSelectedPlayer}
+              // Center horizontally & vertically
+              contentContainerStyle={{
+                flexGrow: 1,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+              // e.g. 3 across
               numColumns={3}
               bounces={false}
             />
           ) : (
-            <Text className="text-secondary mx-auto">No players selected yet</Text>
+            <View
+              style={{
+                flex: 1,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Text className="text-secondary text-lg">
+                No players selected yet
+              </Text>
+            </View>
           )}
         </View>
 
-        {/* Sear   Bar */}
+        {/* Search bar */}
         <View className="flex-row items-center mb-4 border border-secondary rounded-md bg-gray-200 px-3 py-2">
-          <MagnifyingGlassIcon size={20} color="#000" className="mr-2" />
+          <MagnifyingGlassIcon size={20} color="#000" style={{ marginRight: 8 }} />
           <TextInput
-            placeholder="Search players by username or email..."
+            placeholder="Select a friend to play!"
             value={searchQuery}
             onChangeText={setSearchQuery}
             className="flex-1 text-black"
@@ -238,7 +248,7 @@ export default function SelectPlayers() {
           />
         </View>
 
-        {/* If there's no search (empty) and no players returned */}
+        {/* If no search & none available */}
         {searchQuery.length === 0 && availablePlayers.length === 0 && (
           <View className="items-center mb-2">
             <MagnifyingGlassIcon size={wp(20)} color="#4e2b00" className="mb-2" />
@@ -248,7 +258,7 @@ export default function SelectPlayers() {
           </View>
         )}
 
-        {/* If there IS a search but no results */}
+        {/* If searching but no results */}
         {searchQuery.length > 0 && availablePlayers.length === 0 && (
           <View className="flex-row items-center justify-center mb-2 space-x-2">
             <ExclamationCircleIcon size={wp(8)} color="#4e2b00" />
@@ -258,34 +268,39 @@ export default function SelectPlayers() {
           </View>
         )}
 
-        {/* Grid of available players */}
-        <FlatList
-          data={availablePlayers}
-          keyExtractor={(item) => item.id}
-          renderItem={renderAvailablePlayer}
-          numColumns={3}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 40, justifyContent: 'space-between' }}
-        />
+        {/* Available players */}
+        <View style={{ flex: 0.6 }}>
+          <FlatList
+            data={availablePlayers}
+            keyExtractor={(item) => item.id}
+            renderItem={renderAvailablePlayer}
+            numColumns={3}
+            showsVerticalScrollIndicator={false}
+            // Center horizontally & vertically
+            contentContainerStyle={{
+              flexGrow: 1,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          />
+        </View>
       </KeyboardAvoidingView>
 
-      {/* Floating 'Next' Button */}
+      {/* Floating 'NEXT' Button */}
       <TouchableOpacity
         onPress={nextPage}
         style={{
           position: "absolute",
           bottom: wp(5),
           right: wp(5),
-          paddingVertical: wp(5),
-          paddingHorizontal: wp(5),
+          paddingVertical: wp(4),
+          paddingHorizontal: wp(7),
           borderRadius: 9999,
         }}
-        className={`${!selectedPlayers ? "bg-light" : "bg-lightYellowOpacity"} `}
+        className={selectedPlayers.length > 0 ? "bg-yellow" : "bg-gray"}
       >
-        <Text className={`text-secondary font-bold text-xl`}>NEXT</Text>
+        <Text className="text-secondary font-bold text-xl">NEXT</Text>
       </TouchableOpacity>
-
-    
     </SafeAreaView>
   );
 }

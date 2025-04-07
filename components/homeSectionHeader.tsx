@@ -9,6 +9,7 @@ import { Image } from "react-native";
 const HomeSectionHeader: React.FC = () => {
   const router = useRouter();
   const {user, setUser} = useAuth();
+  console.log(user)
 
   // Replace this with your actual notification state logic.
   const hasNewNotifications = true;
@@ -36,7 +37,7 @@ const HomeSectionHeader: React.FC = () => {
             <Image
               style={{ height: hp(10), width: wp(20) }}
               resizeMode="contain"
-              source={require("@/assets/images/ziva_logo.webp")}
+              source={require("@/assets/images/ziva_logo.png")}
             />
         </TouchableOpacity>
 
@@ -47,7 +48,7 @@ const HomeSectionHeader: React.FC = () => {
             showImageModal();
           }}
         >
-          <Image source={{ uri: user.avatar }} className="w-10 h-10 rounded-full" />
+          <Image source={{ uri: user.avatar }} className=" rounded-full"  style={{ height: hp(8), width: wp(15) }}/>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

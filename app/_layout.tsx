@@ -5,6 +5,11 @@ import { AuthContextProvider, useAuth } from "@/contexts/auth";
 import { GameContext } from "@/contexts/game"; 
 import { getCurrentGame } from "@/functions/game";
 import { GameType } from "@/types/game";
+import Toast from "react-native-toast-message";
+import { toastConfig } from "@/config/toastConfig";
+import {  HeaderContext } from "@/contexts/header";
+import { setHandler } from "@/functions/sendNotification";
+import { registerForPushNotificationsAsync, notificationListener, notificationResponseListener, getPushToken } from "@/functions/sendNotification";
 
 function MainLayout() {
   const { isAuthenticated } = useAuth();
@@ -39,20 +44,39 @@ function MainLayout() {
     }
   }, [isAuthenticated, segments, router]);
 
+  useEffect(() => {
+    console.log('running agaimn')
+    registerForPushNotificationsAsync();
+    setHandler();
+  }, []);
+
+
+  useEffect(()=> {
+    const listenerSubscription = notificationListener();
+    const notificationResponseListenerSubscription = notificationResponseListener()
+
+    return () => {
+      listenerSubscription.remove();
+      notificationResponseListenerSubscription.remove();
+    }
+  })
+
   // This layout just renders the nested routes
   return <Slot />;
 }
 
 export default function RootLayout() {
+ 
   // The game state is declared here, so it can be passed into GameContext.Provider
   const [currentGame, setCurrentGame] = useState<GameType | undefined>(undefined);
+  const [title, setTitle] = useState<string>("");
 
   // Load the current game from AsyncStorage once, on mount
   useEffect(() => {
     const fetchGame = async () => {
       try {
-        const game = await getCurrentGame();
-        setCurrentGame(game);
+    
+        setCurrentGame(undefined);
       } catch (error) {
         console.error("Error retrieving game:", error);
       }
@@ -60,10 +84,14 @@ export default function RootLayout() {
     fetchGame();
   }, []);
 
+
   return (
     <AuthContextProvider>
       <GameContext.Provider value={{ currentGame, setCurrentGame }}>
-        <MainLayout />
+        <HeaderContext.Provider value={{title, setTitle}}>
+          <MainLayout />
+          <Toast config={toastConfig} />
+        </HeaderContext.Provider>
       </GameContext.Provider>
     </AuthContextProvider>
   );

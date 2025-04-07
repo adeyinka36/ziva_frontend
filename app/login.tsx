@@ -51,7 +51,7 @@ export default function LoginScreen() {
                 <Image
                     style={{ height: hp(25) }}
                     resizeMode="contain"
-                    source={require("../assets/images/ziva_logo.webp")}
+                    source={require("../assets/images/ziva_logo.png")}
                 />
             </View>
 

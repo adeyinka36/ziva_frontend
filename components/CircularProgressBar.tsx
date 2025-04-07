@@ -57,7 +57,7 @@ const CircularProgressBar: React.FC<CircularProgressBarProps> = ({
       <View className="absolute">
         <View className="text-xl font-bold text-secondary flex-column justify-center items-center">
           <Text className='font-bold'>{points}</Text> 
-          {/* <Text className="text-sm">zoken</Text> */}
+          <Text className="text-sm">ziva</Text>
         </View>
       </View>
     </View>

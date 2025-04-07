@@ -31,3 +31,17 @@ export const updateUserDetails = async (request: updateUserDetailsType)=>{
         return null;
     }
 }
+
+
+export const storePushToken = async (userId: string, pushToken: string): Promise<boolean> =>{
+    try{
+        await axios.post(`${BASE_URL}/push-token`,{
+            player_id: userId,
+            push_token: pushToken
+        })
+        return true;
+    }catch(error){
+        console.error('error storing token---', error);
+        return false;
+    }
+}

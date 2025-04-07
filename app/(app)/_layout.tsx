@@ -43,16 +43,7 @@ export default function AppLayout() {
               header: () => <HomeSectionHeader />,
             }}
           />
-          <Tabs.Screen
-        name="create"
-        options={{
-          tabBarLabel: "Create",
-          tabBarIcon: ({ color, size }) => (
-            <DocumentPlusIcon color={color} size={size} />
-          ),
-          header: () => <HomeSectionHeader />,
-        }}
-      />
+    
       <Tabs.Screen
         name="sponsored"
         options={{

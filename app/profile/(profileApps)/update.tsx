@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useContext, useEffect } from "react";
 import {
   View,
   Text,
@@ -17,6 +17,10 @@ import { updateUserDetails } from "@/functions/updateUser";
 import { userType } from "@/types/userType";
 import { handleImageSelectionAndUpload } from "@/components/imageUploader";
 import { Image } from "react-native";
+import { HeaderContext } from "@/contexts/header";
+import { GameContext } from "@/contexts/game";
+import { widthPercentageToDP as wp } from "react-native-responsive-screen";
+import Toast from "react-native-toast-message";
 
 type FormData = {
   firstName?: string;
@@ -35,8 +39,12 @@ export default function ProfileUpdate() {
   const [apiError, setApiError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
-
+  const { setTitle } = useContext(HeaderContext);
   const passwordPattern = /^(?=.*[0-9])(?=.*[!@#$%^&*])(?=.*[a-zA-Z]).+$/;
+
+  useEffect(() => {
+    setTitle("UPDATE");
+  }, []);
 
   const onUpdate = async (data: FormData) => {
     setLoading(true);
@@ -60,6 +68,10 @@ export default function ProfileUpdate() {
       !data.newPassword
     ) {
       setApiError("Please update at least one field besides the current password.");
+      Toast.show({
+        text1: "Please update at least one field besides the current password.",
+        type: "error",
+      });
       setLoading(false);
       scrollViewRef.current?.scrollTo({ y: 0, animated: true });
       return;
@@ -75,6 +87,10 @@ export default function ProfileUpdate() {
       }
       if (data.newPassword !== data.confirmNewPassword) {
         setApiError("New password and confirm new password must match.");
+        Toast.show({
+          text1: "New password and confirm new password must match.",
+          type: "error",
+        });
         setLoading(false);
         scrollViewRef.current?.scrollTo({ y: 0, animated: true });
         return;
@@ -83,6 +99,10 @@ export default function ProfileUpdate() {
         setApiError(
           "New password must be alphanumeric and include at least one number and one special character."
         );
+        Toast.show({
+          text1: "New password must be alphanumeric and include at least one number and one special character.",
+          type: "error",
+        });
         setLoading(false);
         scrollViewRef.current?.scrollTo({ y: 0, animated: true });
         return;
@@ -103,6 +123,10 @@ export default function ProfileUpdate() {
       setLoading(false);
       if (!res) {
         setApiError("Profile update failed. Please try again.");
+        Toast.show({
+          text1: "Profile update failed. Please try again.",
+          type: "error",
+        });
         scrollViewRef.current?.scrollTo({ y: 0, animated: true });
       } else {
         setUser((prev: userType) => {
@@ -122,10 +146,18 @@ export default function ProfileUpdate() {
           return updatedUser;
         });
         setSuccessMessage("Profile updated successfully.");
+        Toast.show({
+          text1: "Profile updated successfully.",
+          type: "success",
+        });
         scrollViewRef.current?.scrollTo({ y: 0, animated: true });
       }
     } catch (error: any) {
       setApiError("An error occurred while updating your profile.");
+      Toast.show({
+        text1: "An error occurred while updating your profile.",
+        type: "error",
+      });
       setLoading(false);
       scrollViewRef.current?.scrollTo({ y: 0, animated: true });
     }
@@ -151,7 +183,7 @@ export default function ProfileUpdate() {
         )}
 
        <TouchableOpacity onPress={() => handleImageSelectionAndUpload(user.id)}>
-        <Image source={{ uri: user.avatar }} className="w-10 h-10 rounded-full" />
+        <Image source={{ uri: user.avatar }} className=" rounded-full" style={{width: wp(50), height: wp(50)}}/>
        </TouchableOpacity>
 
         {/* Current Password (Required) */}

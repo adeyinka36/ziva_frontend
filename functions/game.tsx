@@ -48,6 +48,7 @@ export const storeCurrentGame = async (game: GameType) => {
 
 // Retrieve the current game from local storage (AsyncStorage)
 export const getCurrentGame = async (): Promise<GameType|undefined> => {
+
   try {
     const game = await AsyncStorage.getItem('currentGame');
     return game ? JSON.parse(game) : undefined;
@@ -56,3 +57,23 @@ export const getCurrentGame = async (): Promise<GameType|undefined> => {
     throw error;
   }
 };
+
+
+export const initiateGame = async (game: GameType) => {
+  
+
+  const payload = {
+    name: game.name,
+    creator_id: game.creator,
+    topic_id: game.topic?.id,
+    players: game.players?.map(g=>g.id)
+  }
+
+  try{
+    const response = await axios.post(`${BASE_URL}/games`, payload);
+    return response.data
+  }catch(e: any){
+    console.error('Error creating game----', e)
+    return null
+  }
+}

@@ -10,6 +10,7 @@ export interface PlayerType {
   zivas: number;
   avatar: string;
   is_member: boolean;
+  is_friend?: boolean;
 }
 
 export interface PlayerResponse {

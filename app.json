@@ -7,24 +7,36 @@
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "extra": {
       "devHost": "192.168.1.159",
-      "reverAppId":222942,
+      "reverAppId": 222942,
       "reverbAppKey": "cygxehin2xsdsgvycdrm",
       "reverbAppSecret": "fbwxhrkib40xqrssy10y",
       "reverbHost": "localhost",
       "reverbPort": 8080,
-      "reverbScheme": "http"
+      "reverbScheme": "http",
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "6e27c21c-41b3-40f9-9bfd-1e5dce873c02"
+      }
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "dev.expo.ziva"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/ziva_logo.png",
         "backgroundColor": "#ffc75f"
-      }
+      },
+      "package": "dev.expo.ziva",
+      "googleServicesFile": "./google-services.json",
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -32,6 +44,15 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/ziva_logo.png",
+          "color": "#ffffff",
+          "defaultChannel": "default",
+          "enableBackgroundRemoteNotifications": false
+        }
+      ],
       "expo-router",
       [
         "expo-splash-screen",
@@ -59,6 +80,7 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "owner": "yinkax86"
   }
 }

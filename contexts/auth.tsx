@@ -5,6 +5,7 @@ import {BASE_URL} from "@/utils/getUrls";
 import {removeToken, storeToken, getToken} from "@/utils/auth";
 import { userType } from "@/types/userType";
 import { PlayerType } from "@/functions/getPlayers";
+import { getPushToken } from "@/functions/sendNotification";
 
 
 const AuthContext = createContext<AuthContextType>(defaultAuthContext);
@@ -69,6 +70,7 @@ export const AuthContextProvider = ({children}: AuthProviderProps) => {
                 const response = await axios.post(`${BASE_URL}/players/login`,{email, password});
                 console.log(response.data)
                 await storeTokenAndSetUser(response.data.token, response.data.data);
+                await getPushToken(response.data.data)
                 return true;
             }catch (error: any){
                 await removeTokenAndUser();
@@ -87,6 +89,7 @@ export const AuthContextProvider = ({children}: AuthProviderProps) => {
                 });
 
                 await storeTokenAndSetUser(response.data.token, response.data.data);
+                await getPushToken(response.data.data)
                 return true;
             }catch (error){
                 await removeTokenAndUser();
