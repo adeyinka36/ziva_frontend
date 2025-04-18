@@ -1,9 +1,8 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { SafeAreaView } from 'react-native';
+import { SafeAreaView, Text } from 'react-native';
 import { useAuth } from '@/contexts/auth';
 import { GameContext } from '@/contexts/game';
 import { HeaderContext } from '@/contexts/header';
-import { scheduleNotification } from '@/functions/sendNotification';
 import { useGameAnimation } from '@/components/gamePlay/useGameAnimation';
 import PlayersGrid from '@/components/gamePlay/PlayersGrid';
 import StartGameButton from '@/components/gamePlay/StartGameButton';
@@ -12,95 +11,151 @@ import { PlayerType } from '@/functions/getPlayers';
 import AcceptOrDeclineInviteButtons from './AcceptOrDeclineInvite';
 import { useRouter } from 'expo-router';
 import { initiateGame } from '@/functions/game';
+import { GameType } from '@/types/game';
+import Toast from 'react-native-toast-message';
+import { useLocalSearchParams } from 'expo-router';
+import { useNotification } from '@/contexts/NotificationContext';
+import { setParams } from 'expo-router/build/global-state/routing';
+import { setNativeProps } from 'react-native-reanimated';
+import { sendGameAcceptedOrDeclinedNotification } from '@/functions/sendPushNotification';
 
-type GamePlayer = PlayerType & { is_ready: boolean };
 
 export default function ConfirmGame() {
-  const { currentGame } = useContext(GameContext);
-  const { setTitle } = useContext(HeaderContext);
-  const { user } = useAuth();
-  const [invitedAccepted, setInviteAccepted] = useState(false);
-  const [isCreator, setIsCreator] = useState(false);
-  const [ gameInitiated, setGameInitiated] = useState(false);
-  const [ confirmTitle, setConfirmTitle] = useState("Start Game");
-  const router = useRouter();
-
-  const [players, setPlayers] = useState<GamePlayer[]>([]);
-
-  const { bounceAnimations, startBtnScale } = useGameAnimation(players.length);
-
-  useEffect(() => {
-    setTitle && setTitle('Start Game');
-  }, [setTitle]);
-
-  useEffect(() => {
-    setIsCreator(currentGame?.creator === user.id)
-    if(players.length === 1){
-        setGameInitiated(true);
-        router.replace('/gameScreen')
-    }
-  }, [user, currentGame, players])
-
-
-  useEffect(() => {
-    const gamePlayers = currentGame?.players || [];
-
-    const localPlayers = gamePlayers.map((p) => ({
-      ...p,
-      is_ready: p.id === user.id,
-    }));
-
-    setPlayers(localPlayers);
-  }, [currentGame, user]);
-
-  useEffect(() => {
-    if (players.length > 0 && players.every((pl) => pl.is_ready)) {
-      handleAllAccepted();
-    }
-  }, [players]);
-
-  const handleAllAccepted = () => {
-    console.log('All players are ready!');
-    router.replace('/gameScreen')
-    
-  };
-
-  const handleStartGame = async() => {
-    if(!currentGame){
-        return
-    }
-    await initiateGame(currentGame)
-    setGameInitiated(true)
-    // scheduleNotification();
-   
-    setConfirmTitle('Waiting')
-  };
-
-  const handleAccept = () => {
-    setInviteAccepted(true);
-    setConfirmTitle('Waiting for Opponents')
-    setGameInitiated(true)
-    // Optionally update player status or emit socket event
-  };
+    const { currentGame, setCurrentGame } = useContext(GameContext);
+    const { setTitle } = useContext(HeaderContext);
+    const { user } = useAuth();
+    const [invitedAccepted, setInviteAccepted] = useState(false);
+    const [isCreator, setIsCreator] = useState(false);
+    const [gameInitiated, setGameInitiated] = useState(false);
+    const [confirmTitle, setConfirmTitle] = useState('Start Game');
+    const router = useRouter();
+    const { notificationData } = useNotification();
   
-  const handleDecline = (userId: string) => {
-    console.log('Player declined invitation');
-    setPlayers(players.filter(p=>p.id !== userId))
-  };
+    // Initialize players state with an empty array or currentGame.players if available
+    const [players, setPlayers] = useState<PlayerType[]>(currentGame?.players || []);
+  
+    const { bounceAnimations, startBtnScale } = useGameAnimation(players.length);
+  
+    useEffect(() => {
+      setTitle && setTitle('Start Game');
+    }, [setTitle]);
+  
+    useEffect(() => {
+      if (currentGame) {
+        setIsCreator(currentGame.creator === user.id);
+        if (players.length === 1) {
+          setGameInitiated(true);
+          router.replace('/gameScreen');
+        }
+      }
+    }, [user, currentGame, players]);
+  
+    useEffect(() => {
+      if (notificationData?.game_id === currentGame?.id) {
+        const type = notificationData?.type;
+        const playerId = notificationData?.accepting_player_id;
+  
+        if (type === 'game_invite_accepted' && playerId) {
+          setPlayers((prevPlayers) =>
+            prevPlayers.map((player) =>
+              player.id === playerId ? { ...player, is_ready: true } : player
+            )
+          );
+        }
+  
+        if (type === 'game_invite_rejected' && playerId) {
+          setPlayers((prevPlayers) =>
+            prevPlayers.filter((player) => player.id !== playerId)
+          );
+        }
+      }
+    }, [notificationData, currentGame]);
+  
+    useEffect(() => {
+      if (players.length > 0 && players.every((pl) => pl.is_ready)) {
+        router.replace('/gameScreen');
+      }
+    }, [players]);
+  
+    const handleStartGame = async () => {
+      if (currentGame) {
+        const createdGame = await initiateGame(currentGame);
+        setCurrentGame({ ...currentGame, id: createdGame.id });
 
-  const inivitedPlayerNotAccceptedYet = !isCreator && !invitedAccepted && !gameInitiated;
-  return (
-    <SafeAreaView className="flex-1 bg-primary">
-      <ConfirmGameHeader topic={currentGame?.topic?.title ?? ''} />
-      {<PlayersGrid players={players} user={user} bounceAnimations={bounceAnimations} gameInitiated={gameInitiated} />}
-       <StartGameButton onPress={handleStartGame} scale={startBtnScale} title={confirmTitle} gameInitiated={gameInitiated}/> 
-      {inivitedPlayerNotAccceptedYet && (
-        <AcceptOrDeclineInviteButtons
-            scale={startBtnScale}
-            onAccept={handleAccept}
-            onDecline={handleDecline}
-        />
+        setGameInitiated(true);
+        setConfirmTitle('Waiting');
+      }
+    };
+  
+    const handleAccept = async () => {
+      if (currentGame?.id) {
+        const success = await sendGameAcceptedOrDeclinedNotification(
+          user.id,
+          currentGame.id,
+          'accepted'
+        );
+        if (!success) {
+          Toast.show({
+            type: 'error',
+            text1: 'Invite',
+            text2: "Couldn't accept invite",
+          });
+          return;
+        }
+        setInviteAccepted(true);
+        setConfirmTitle('Waiting for Opponents');
+        setGameInitiated(true);
+        router.replace('/gameScreen');
+      }
+    };
+  
+    const handleDecline = async (userId: string) => {
+      if (currentGame?.id) {
+        const success = await sendGameAcceptedOrDeclinedNotification(
+          user.id,
+          currentGame.id,
+          'rejected'
+        );
+        if (!success) {
+          Toast.show({
+            type: 'error',
+            text1: 'Invite',
+            text2: "Couldn't decline invite",
+          });
+          return;
+        }
+        setPlayers(players.filter((p) => p.id !== userId));
+      }
+    };
+
+  
+    return (
+      <SafeAreaView className="flex-1 bg-primary">
+        {currentGame ? (
+          <>
+            <ConfirmGameHeader topic={currentGame.topic?.title ?? ''} />
+            <PlayersGrid players={players} bounceAnimations={bounceAnimations} />
+            {isCreator && (
+              <StartGameButton
+                onPress={handleStartGame}
+                scale={startBtnScale}
+                title={confirmTitle}
+                gameInitiated={gameInitiated}
+              />
+            )}
+            {(!invitedAccepted && !isCreator) &&  (
+              <AcceptOrDeclineInviteButtons
+                scale={startBtnScale}
+                onAccept={handleAccept}
+                onDecline={handleDecline}
+              />
+            )}
+          </>
+        ) : (
+          // Optionally, render a loading indicator or placeholder
+          <Text>Loading game data...</Text>
         )}
-    </SafeAreaView>
-  );
-}
+      </SafeAreaView>
+    );
+  }
+  

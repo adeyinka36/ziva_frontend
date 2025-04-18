@@ -63,7 +63,6 @@ export async function fetchCustomTopics(query?: string): Promise<TopicsResponse 
 //create custom topic or get the topic if it already exists
 export async function getTopicOrCreateCustomTopicByTitle(title: string): Promise<CustomTopicCreationResponse | null> {
   try {
-    console.log(`${BASE_URL}/topics/custom-topics`)
     const response = await axios.post<CustomTopicCreationResponse>(`${BASE_URL}/topics/custom-topics`, { title });
     return { ...response.data, message: response?.data.message };
   } catch (error: unknown) {

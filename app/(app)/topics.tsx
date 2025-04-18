@@ -72,7 +72,6 @@ export default function Topics() {
    * 1) Whenever `selectedType` or `searchQuery` changes, we reset and fetch new data.
    */
   useEffect(() => {
-   console.log('xxx-----xxx', currentGame)
     // Clear old topics
     setTopics([]);
     // Reset the "next" link for custom

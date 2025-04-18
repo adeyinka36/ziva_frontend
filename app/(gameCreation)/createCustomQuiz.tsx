@@ -29,6 +29,7 @@ import { getTopicOrCreateCustomTopicByTitle, CustomTopicCreationResponse } from 
 import { useRouter } from "expo-router";
 import { GameContext } from "@/contexts/game";
 import { heightPercentageToDP as hp } from "react-native-responsive-screen";
+
 export default function CustomQuizCreateScreen() {
   const { setTitle } = useContext(HeaderContext);
   const [topic, setTopic] = useState("");

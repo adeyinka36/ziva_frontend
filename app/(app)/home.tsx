@@ -14,7 +14,6 @@ import {
 import { widthPercentageToDP as wp } from "react-native-responsive-screen";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/contexts/auth";
-import { getPushToken } from "@/functions/sendNotification";
 
 
 export default function Home() {

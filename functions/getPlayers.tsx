@@ -11,6 +11,7 @@ export interface PlayerType {
   avatar: string;
   is_member: boolean;
   is_friend?: boolean;
+  is_ready?: boolean
 }
 
 export interface PlayerResponse {

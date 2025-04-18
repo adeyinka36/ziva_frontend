@@ -9,7 +9,6 @@ import { Image } from "react-native";
 const HomeSectionHeader: React.FC = () => {
   const router = useRouter();
   const {user, setUser} = useAuth();
-  console.log(user)
 
   // Replace this with your actual notification state logic.
   const hasNewNotifications = true;

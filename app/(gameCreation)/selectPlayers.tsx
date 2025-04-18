@@ -128,14 +128,22 @@ export default function SelectPlayers() {
 
   // Next screen
   const nextPage = () => {
-    if (!selectedPlayers.length) return;
-    if (!currentGame) return;
-
-    const updatedGame: GameType = { ...currentGame, players: selectedPlayers };
+    if (!selectedPlayers.length || !currentGame) return;
+  
+    const updatedPlayers = selectedPlayers.map(player => ({
+      ...player,
+      is_ready: player.id === user.id
+    }));
+  
+    const updatedGame = { ...currentGame, players: updatedPlayers };
     setCurrentGame(updatedGame);
-
-    router.push("/createGame");
+  
+    setTimeout(()=>{
+      router.push("/createGame");
+    }, 1000)
+    
   };
+  
 
   // Render a selected player
   const renderSelectedPlayer = ({ item }: { item: PlayerType }) => {

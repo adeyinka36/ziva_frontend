@@ -4,14 +4,10 @@ export default function PlayerAvatar({
   player,
   index,
   bounceVal,
-  isUser,
-  gameInitiated
 }: {
   player: any;
   index: number;
   bounceVal: Animated.Value;
-  isUser: boolean;
-  gameInitiated: boolean
 }) {
     if (!bounceVal) return null;
   const translateY = bounceVal.interpolate({
@@ -19,7 +15,7 @@ export default function PlayerAvatar({
     outputRange: [-5, 50],
   });
 
-  const showOverlay = !player.is_ready && !isUser;
+  const showOverlay = !player.is_ready;
 
   return (
     //if game is not initiated put dark shade overlay and hide waiting
@@ -34,12 +30,12 @@ export default function PlayerAvatar({
             activeOpacity={0.8}
             style={{
               ...StyleSheet.absoluteFillObject,
-              backgroundColor: gameInitiated ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0)',
+              backgroundColor: showOverlay ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0)',
               justifyContent: 'center',
               alignItems: 'center',
             }}
           >
-            <Text style={{ color: '#fff', fontWeight: 'bold' }}>{gameInitiated ? 'Waiting' : ''}</Text>
+            <Text style={{ color: '#fff', fontWeight: 'bold' }}>{showOverlay ? 'Waiting' : ''}</Text>
           </TouchableOpacity>
         )}
       </View>

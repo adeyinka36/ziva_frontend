@@ -1,7 +1,7 @@
 import { FlatList, View } from 'react-native';
 import PlayerAvatar from './PlayerAvatar';
 
-export default function PlayersGrid({ players, user, bounceAnimations, gameInitiated}: any) {
+export default function PlayersGrid({ players,  bounceAnimations, gameInitiated}: any) {
     // if (!players?.length || !bounceAnimations.current.length) return null;
 
 
@@ -18,8 +18,6 @@ export default function PlayersGrid({ players, user, bounceAnimations, gameIniti
                 player={item}
                 index={index}
                 bounceVal={bounceVal} // 👈 Make sure this is valid
-                isUser={item.id === user.id}
-                gameInitiated={gameInitiated}
               />
             );
           }}
