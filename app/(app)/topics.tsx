@@ -19,6 +19,7 @@ import { GameType } from "@/types/game";
 import { useAuth } from "@/contexts/auth";
 import { GameContext } from "@/contexts/game";
 import { SparklesIcon } from "react-native-heroicons/outline";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 /** For reference: the shape of your Topics response */
 interface TopicsResponse {
@@ -157,6 +158,7 @@ export default function Topics() {
     currGame.topic = topic
 
     setCurrentGame(currGame);
+    AsyncStorage.setItem('currentGame', JSON.stringify(currentGame));
   };
 
   /**
@@ -179,6 +181,8 @@ export default function Topics() {
     }
 
     setCurrentGame(updatedGame);
+    AsyncStorage.setItem('currentGame', JSON.stringify(updatedGame));
+    
     router.push("/selectPlayers");
   };
 

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { BASE_URL } from '@/utils/getUrls';
+import { BASE_URL, SOCKET_URL } from '@/utils/getUrls';
 import { GameType } from '@/types/game';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -59,9 +59,8 @@ export const getCurrentGame = async (): Promise<GameType|undefined> => {
 };
 
 
-export const initiateGame = async (game: GameType) => {
+export const createGameOnServer = async (game: GameType) => {
   
-
   const payload = {
     name: game.name,
     creator_id: game.creator,
@@ -73,7 +72,22 @@ export const initiateGame = async (game: GameType) => {
     const response = await axios.post(`${BASE_URL}/games`, payload);
     return response.data
   }catch(e: any){
-    console.error('Error creating game----', e)
+    console.error('Error creating gamex----', e)
     return null
   }
+}
+
+
+export const initiateGameOnSocket = async (gameId: string) => {
+  const payload = {
+    gameId
+  }
+  try{
+    const response = await axios.post(`${SOCKET_URL}:3000/socket/api/v1/initiate-game`, payload);
+    return response.data
+  }catch(e: any){
+    console.error('Error creating gamec----', e)
+    return null
+  }
+
 }

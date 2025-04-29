@@ -28,7 +28,8 @@ import Toast from "react-native-toast-message";
 import { HeaderContext } from "@/contexts/header";
 import { getFriendships } from "@/functions/getFriends";
 import { PlayerType } from "@/functions/getPlayers";
-import { GameType } from "@/types/game";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 
 const MAX_PLAYERS = 6;
 
@@ -61,6 +62,7 @@ export default function SelectPlayers() {
         setCurrentGame({ ...currentGame, players: [user] });
       }
     }
+    AsyncStorage.setItem('currentGame', JSON.stringify(currentGame));
   }, []);
 
   // Fetch players (friends who are "accepted") using debouncedQuery
@@ -107,6 +109,7 @@ export default function SelectPlayers() {
     } else {
       setCurrentGame({ ...currentGame, players: [player] });
     }
+    AsyncStorage.setItem('currentGame', JSON.stringify(currentGame));
     setAvailablePlayers((prev) => prev.filter((p) => p.id !== player.id));
   };
 
@@ -122,12 +125,15 @@ export default function SelectPlayers() {
       });
     } else {
       setCurrentGame({ ...currentGame, players: [] });
+    
     }
+    AsyncStorage.setItem('currentGame', JSON.stringify(currentGame));
     setAvailablePlayers((prev) => [player, ...prev]);
   };
 
   // Next screen
   const nextPage = () => {
+  
     if (!selectedPlayers.length || !currentGame) return;
   
     const updatedPlayers = selectedPlayers.map(player => ({
@@ -137,11 +143,13 @@ export default function SelectPlayers() {
   
     const updatedGame = { ...currentGame, players: updatedPlayers };
     setCurrentGame(updatedGame);
+    AsyncStorage.setItem('currentGame', JSON.stringify(currentGame));
+    console.log('idddd------>', updatedGame)
   
     setTimeout(()=>{
-      router.push("/createGame");
-    }, 1000)
-    
+      router.push("/confirmGame");
+    }, 250)
+  
   };
   
 

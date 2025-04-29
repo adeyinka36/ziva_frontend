@@ -7,6 +7,6 @@ interface GameContextType {
 }
 
 export const GameContext = createContext<GameContextType>({
-  currentGame: undefined,
+  currentGame: {},
   setCurrentGame: () => {},
 });

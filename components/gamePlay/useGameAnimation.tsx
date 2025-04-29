@@ -1,23 +1,21 @@
-import { useEffect, useRef } from 'react';
+import { useMemo, useRef, useEffect } from 'react';
 import { Animated, Easing } from 'react-native';
 
-export function useGameAnimation(playerCount: number) {
-  const bounceAnimations = useRef<Animated.Value[]>([]);
+export function useGameAnimation(playerCount: number = 0) {
   const startBtnScale = useRef(new Animated.Value(1)).current;
 
-  useEffect(() => {
-    bounceAnimations.current = Array(playerCount)
-      .fill(null)
-      .map(() => new Animated.Value(0));
-
-    bounceAnimations.current.forEach((_, i) => startBounce(i));
-    startButtonPulse();
+  // ✅ Immediately available bounce values on first render
+  const bounceAnimations = useMemo(() => {
+    return Array.from({ length: playerCount }, () => new Animated.Value(0));
   }, [playerCount]);
 
-  
+  useEffect(() => {
+    bounceAnimations.forEach((_, i) => startBounce(i));
+    startButtonPulse();
+  }, [bounceAnimations]);
 
   const startBounce = (index: number) => {
-    const bounceVal = bounceAnimations.current[index];
+    const bounceVal = bounceAnimations[index];
     bounceVal.setValue(50);
     Animated.sequence([
       Animated.timing(bounceVal, {

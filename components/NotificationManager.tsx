@@ -82,9 +82,8 @@ export default function NotificationManager() {
     const receivedSubscription = Notifications.addNotificationReceivedListener(notification => {
       const data = notification.request.content.data;
       setTimeout(() =>{
-        if(data.type == 'game_invite_accepted') {
+        if(data.type == 'game_invite_response') {
           setCurrentGame({...data.game_data})
-          setNotificationData({...data})
         }
       }, 1000)
     });
@@ -102,13 +101,11 @@ export default function NotificationManager() {
       if(data.type === 'game_invite') {
         setTimeout(() => {
           const setGameAndRedirect = async () => {
-            if (data?.targetScreen && pathname !== data.targetScreen) {
-               setCurrentGame({...data.currentGame});
-              router.push(data.targetScreen);
-            }
+            setCurrentGame({...data.currentGame});
+            router.push(data.targetScreen);
           };
           setGameAndRedirect();
-        }, 500);
+        }, 1000);
       }
       setNotificationData({...data});
        

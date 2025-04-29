@@ -1,12 +1,11 @@
 import React from 'react';
 import { View, Text, Image } from 'react-native';
-import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 interface PlayerCardProps {
   username: string;
   avatar: string;
   points?: number;
-  scale?: number;
+  scale?: number; // Default is 1
 }
 
 const PlayerCard: React.FC<PlayerCardProps> = ({
@@ -15,16 +14,15 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
   points,
   scale = 1,
 }) => {
-  const avatarSize = hp(6) * scale; // ~48dp base
-  const nameFontSize = hp(2) * scale; // ~16dp base
-  const pointsFontSize = hp(1.7) * scale; // ~14dp base
-  const padding = hp(2) * scale; // ~16dp base
-  const cardWidth = hp(35) * scale; // ~280dp base
+  const avatarSize = 48 * scale;
+  const nameFontSize = 16 * scale;
+  const pointsFontSize = 14 * scale;
+  const padding = 16 * scale;
 
   return (
     <View
       className="flex-row items-center bg-white rounded-xl shadow-md"
-      style={{ padding, width: cardWidth }}
+      style={{ padding, width: 288 * scale }}
     >
       <Image
         source={{ uri: avatar }}
@@ -32,7 +30,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
           width: avatarSize,
           height: avatarSize,
           borderRadius: avatarSize / 2,
-          marginRight: hp(1.5) * scale,
+          marginRight: 12 * scale,
         }}
         resizeMode="cover"
       />

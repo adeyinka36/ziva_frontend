@@ -8,16 +8,13 @@ import PlayersGrid from '@/components/gamePlay/PlayersGrid';
 import StartGameButton from '@/components/gamePlay/StartGameButton';
 import ConfirmGameHeader from '@/components/gamePlay/ConfirmGameHeader';
 import { PlayerType } from '@/functions/getPlayers';
-import AcceptOrDeclineInviteButtons from './AcceptOrDeclineInvite';
+import AcceptOrDeclineInviteButtons from '@/components/gamePlay/AcceptOrDeclineInvite';
 import { useRouter } from 'expo-router';
 import { createGameOnServer } from '@/functions/game';
-import { GameType } from '@/types/game';
 import Toast from 'react-native-toast-message';
-import { useLocalSearchParams } from 'expo-router';
 import { useNotification } from '@/contexts/NotificationContext';
-import { setParams } from 'expo-router/build/global-state/routing';
-import { setNativeProps } from 'react-native-reanimated';
 import { sendGameAcceptedOrDeclinedNotification } from '@/functions/sendPushNotification';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 export default function ConfirmGame() {
@@ -29,63 +26,42 @@ export default function ConfirmGame() {
     const [gameInitiated, setGameInitiated] = useState(false);
     const [confirmTitle, setConfirmTitle] = useState('Start Game');
     const router = useRouter();
-    const { notificationData } = useNotification();
+    const [gameCreated, setGameCreated] = useState(false);
+  
 
     if(!currentGame?.players) return null
   
-    // Initialize players state with an empty array or currentGame.players if available
-    const [players, setPlayers] = useState<PlayerType[]>(currentGame.players || []);
-  
-    const { bounceAnimations, startBtnScale } = useGameAnimation(currentGame.players.length);
+    const { bounceAnimations, startBtnScale } = useGameAnimation(currentGame.players?.length || 0);
   
     useEffect(() => {
       setTitle && setTitle('Start Game');
+    
     }, [setTitle]);
+
   
     useEffect(() => {
-      if (currentGame) {
-        setIsCreator(currentGame.creator === user.id);
-        if (currentGame?.players?.length === 1) {
-          setGameInitiated(true);
+      if(!currentGame?.players?.length) return
+      if ( currentGame.players.every((pl) => pl.is_ready)) { 
+        if((currentGame?.creator === user.id) && !gameCreated) {
+          handleStartGame().then(()=>{
+            router.replace('/gameScreen');
+          })
+        } else {
+          AsyncStorage.setItem('currentGame', JSON.stringify(currentGame));
           router.replace('/gameScreen');
         }
       }
-    }, [user, currentGame]);
-  
-    // useEffect(() => {
-    //   if (notificationData?.game_id === currentGame?.id) {
-    //     const type = notificationData?.type;
-    //     const playerId = notificationData?.accepting_player_id;
-  
-    //     if (type === 'game_invite_accepted' && playerId) {
-    //       setPlayers((prevPlayers) =>
-    //         prevPlayers.map((player) =>
-    //           player.id === playerId ? { ...player, is_ready: true } : player
-    //         )
-    //       );
-    //     }
-  
-    //     if (type === 'game_invite_rejected' && playerId) {
-    //       setPlayers((prevPlayers) =>
-    //         prevPlayers.filter((player) => player.id !== playerId)
-    //       );
-    //     }
-    //   }
-    // }, [notificationData, currentGame]);
-  
-    useEffect(() => {
-      if (players.length > 0 && players.every((pl) => pl.is_ready)) {
-        router.replace('/gameScreen');
-      }
-    }, [players]);
+    }, [currentGame?.players]);
   
     const handleStartGame = async () => {
       if (currentGame) {
-        const createdGame = await createGameOnServer(currentGame);
-        setCurrentGame({ ...currentGame, id: createdGame.id });
-
         setGameInitiated(true);
-        setConfirmTitle('Waiting for players');
+        const createdGame = await createGameOnServer(currentGame);
+        setCurrentGame({...currentGame, id: createdGame.data.id});
+        AsyncStorage.setItem('currentGame', JSON.stringify(currentGame));
+        setConfirmTitle('Waiting');
+        setGameCreated(true);
+    
       }
     };
   
@@ -105,9 +81,8 @@ export default function ConfirmGame() {
           return;
         }
         setInviteAccepted(true);
-        setConfirmTitle('Waiting for players');
+        setConfirmTitle('Waiting for Opponents');
         setGameInitiated(true);
-        router.replace('/gameScreen');
       }
     };
   
@@ -126,20 +101,18 @@ export default function ConfirmGame() {
           });
           return;
         }
-        setPlayers(players.filter((p) => p.id !== userId));
+        setCurrentGame({...currentGame, players: currentGame.players?.filter(p=>p.id !== user.id)});
       }
     };
-    
 
-    
   
     return (
       <SafeAreaView className="flex-1 bg-primary">
         {currentGame ? (
           <>
             <ConfirmGameHeader topic={currentGame.topic?.title ?? ''} />
-            <PlayersGrid players={players} bounceAnimations={bounceAnimations} />
-            {(isCreator || (invitedAccepted && !isCreator)) &&  (
+            <PlayersGrid players={currentGame.players} bounceAnimations={bounceAnimations} />
+            {(currentGame?.creator== user.id) && (
               <StartGameButton
                 onPress={handleStartGame}
                 scale={startBtnScale}
@@ -147,7 +120,7 @@ export default function ConfirmGame() {
                 gameInitiated={gameInitiated}
               />
             )}
-            {(!invitedAccepted && !isCreator) &&  (
+            {(!invitedAccepted && !(currentGame?.creator== user.id)) &&  (
               <AcceptOrDeclineInviteButtons
                 scale={startBtnScale}
                 onAccept={handleAccept}
